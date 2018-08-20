@@ -5,7 +5,9 @@ import lombok.Data;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,6 +66,19 @@ public class Directory {
 
     public int getDocumentCount() {
         return getDocuments().size();
+    }
+
+    public List<Path> getRecentModifiedDocuments(int count) {
+        return getDocuments().stream().sorted((p1, p2) -> {
+            try {
+                FileTime t1 = Files.getLastModifiedTime(p1, LinkOption.NOFOLLOW_LINKS);
+                FileTime t2 = Files.getLastModifiedTime(p2, LinkOption.NOFOLLOW_LINKS);
+                return t2.compareTo(t1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return 0;
+        }).limit(count).collect(Collectors.toList());
     }
 
 }
